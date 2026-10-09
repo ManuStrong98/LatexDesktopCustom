@@ -7,6 +7,25 @@
         mc:Ignorable="d"
         Title="MainWindow" WindowStartupLocation="Manual">
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" MinWidth="150" />
+            <ColumnDefinition Width="5" />
+            <ColumnDefinition Width="*" MinWidth="150" />
+        </Grid.ColumnDefinitions>
 
+        <Grid x:Name="TerminalPanel" Grid.Column="0" />
+
+        <GridSplitter Grid.Column="1"
+                      Width="5"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch"
+                      Background="#B0B0B0"
+                      Cursor="SizeWE"
+                      ResizeDirection="Columns"
+                      ResizeBehavior="PreviousAndNext"
+                      ShowsPreview="False"
+                      AutomationProperties.Name="Ajustar ancho de los paneles" />
+
+        <Grid x:Name="PdfViewerPanel" Grid.Column="2" />
     </Grid>
 </Window>
