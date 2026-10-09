@@ -1,5 +1,3 @@
-<div align="center"\>
-
 # 📝 LaTeX Desktop
 
 ### Tu terminal, tu editor y tu PDF en una sola ventana.
@@ -195,5 +193,4 @@ git commit -m "Actualizar documento"
 ***
 <div align="center"\>
 
-**Edita desde la terminal. Versiona con Git. Visualiza tu LaTeX.**
-\</div\>
+**Edita desde la terminal. Versiona con Git. Visualiza tu LaTeX.*
