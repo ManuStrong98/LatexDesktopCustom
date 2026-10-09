@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LatexDesktopCustom"
         mc:Ignorable="d"
-        Title="MainWindow" WindowStartupLocation="Manual">
+        Title="MainWindow" Icon="Assets/app-icon.ico" WindowStartupLocation="Manual">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" MinWidth="150" />
