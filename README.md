@@ -60,7 +60,7 @@ La interfaz estará dividida en dos paneles ajustables:
 Para ejecutar la aplicación base:
 
 - Windows compatible con WPF.
-- SDK de .NET compatible con la versión indicada en `LatexDesktop.csproj`.
+- SDK de .NET compatible con la versión indicada en `LatexDesktopCustom.csproj`.
 
 Para las integraciones previstas también serán necesarios:
 
@@ -75,18 +75,18 @@ Para las integraciones previstas también serán necesarios:
 
 ## 🚀 Cómo ejecutar
 
-Abre una terminal en la carpeta que contiene `LatexDesktop.csproj`.
+Abre una terminal en la raíz de `LatexDesktopCustom`.
 
 ### 1\. Restaurar dependencias
 
 ```
-dotnet restore
+dotnet restore LatexDesktopCustom.slnx
 ```
 
 ### 2\. Iniciar la aplicación
 
 ```
-dotnet run
+dotnet run --project src/LatexDesktopCustom
 ```
 
 En la base generada con `dotnet new wpf`, se abrirá una ventana vacía. Los paneles y las integraciones se añadirán durante el desarrollo.
@@ -94,38 +94,37 @@ En la base generada con `dotnet new wpf`, se abrirá una ventana vacía. Los pan
 ### Compilar sin ejecutar
 
 ```
-dotnet build
+dotnet build LatexDesktopCustom.slnx
 ```
 
 > La configuración y los comandos del backend se documentarán cuando se incorpore al proyecto.
 
 ## 📁 Estructura del proyecto
 
-La base WPF contiene:
+La estructura actual es:
 
-```
-LatexDesktop/
-├── App.xaml
-├── App.xaml.cs
-├── MainWindow.xaml
-├── MainWindow.xaml.cs
-├── LatexDesktop.csproj
+```text
+LatexDesktopCustom/
+├── LatexDesktopCustom.slnx
 ├── .gitignore
-└── README.md
+├── README.md
+├── src/
+│   └── LatexDesktopCustom/
+│       ├── LatexDesktopCustom.csproj
+│       ├── App.xaml / App.xaml.cs
+│       ├── MainWindow.xaml / MainWindow.xaml.cs
+│       ├── AssemblyInfo.cs
+│       ├── Terminal/
+│       ├── Compilation/
+│       ├── Editor/
+│       └── PdfViewer/
+├── backend/
+│   └── desktop-adapter/
+├── docker/
+└── nvim/
 ```
 
-La organización prevista para las siguientes etapas es:
-
-```
-LatexDesktop/
-├── Terminal/          # Integración de PowerShell
-├── Editor/            # Comunicación con Neovim
-├── Compilation/       # Coordinación de compilaciones
-├── PdfViewer/         # Interfaz del visor PDF
-├── backend/           # Adaptador para Overleaf CLSI
-├── docker/            # Configuración del backend
-└── nvim/              # Integración y atajos de Neovim
-```
+Las carpetas de integración contienen documentación de su propósito; las funciones todavía están pendientes.
 
 ## ⚙️ Flujo de trabajo previsto
 
