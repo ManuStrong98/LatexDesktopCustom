@@ -18,6 +18,7 @@ namespace LatexDesktopCustom;
 /// </summary>
 public partial class MainWindow : Window
 {
+    private LatexDesktopCustom.Terminal.WindowsPowerShellWindow? powerShellWindow;
     private TransparentInputSurface? terminalInputSurface;
     private TransparentInputSurface? pdfInputSurface;
 
@@ -33,9 +34,12 @@ public partial class MainWindow : Window
             UpdateInputSurfaces();
             terminalInputSurface.Show();
             pdfInputSurface.Show();
+            StartPowerShell();
         };
+        Activated += (_, _) => powerShellWindow?.BringToFront();
         LocationChanged += (_, _) => UpdateInputSurfaces();
         LayoutUpdated += (_, _) => UpdateInputSurfaces();
+        Closed += (_, _) => powerShellWindow?.Dispose();
 
         var workArea = SystemParameters.WorkArea;
         Width = workArea.Width * 0.9;
@@ -44,10 +48,31 @@ public partial class MainWindow : Window
         Top = workArea.Top + (workArea.Height - Height) / 2;
     }
 
+    private void StartPowerShell()
+    {
+        powerShellWindow?.Dispose();
+        powerShellWindow = new LatexDesktopCustom.Terminal.WindowsPowerShellWindow(this, TerminalPanel);
+        powerShellWindow.Ready += () => { terminalInputSurface!.Content = null; TerminalStatus.Visibility = Visibility.Collapsed; };
+            powerShellWindow.Failed += message =>
+            {
+                TerminalStatus.Text = message;
+                TerminalStatus.Visibility = Visibility.Visible;
+                var messagePanel = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(16) };
+                messagePanel.Children.Add(new TextBlock { Text = message, Foreground = Brushes.White, TextWrapping = TextWrapping.Wrap });
+                var retryButton = new Button { Content = "Reabrir Windows PowerShell", Margin = new Thickness(0, 12, 0, 0), HorizontalAlignment = HorizontalAlignment.Left };
+                retryButton.Click += (_, _) => StartPowerShell();
+                messagePanel.Children.Add(retryButton);
+                terminalInputSurface!.Content = messagePanel;
+                terminalInputSurface.Show();
+            };
+        powerShellWindow.Start();
+    }
+
     private void UpdateInputSurfaces()
     {
         terminalInputSurface?.UpdateBounds();
         pdfInputSurface?.UpdateBounds();
+        powerShellWindow?.UpdateBounds();
     }
 
     private void EnableTransparentBackground()
