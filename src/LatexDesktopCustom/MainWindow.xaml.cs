@@ -19,5 +19,11 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        var workArea = SystemParameters.WorkArea;
+        Width = workArea.Width * 0.9;
+        Height = workArea.Height * 0.9;
+        Left = workArea.Left + (workArea.Width - Width) / 2;
+        Top = workArea.Top + (workArea.Height - Height) / 2;
     }
 }
