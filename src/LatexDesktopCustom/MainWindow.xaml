@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="MainWindow" Icon="Assets/app-icon.ico" WindowStartupLocation="Manual"
         Background="#FFFF00FF">
-    <Grid>
+    <Grid x:Name="LayoutRoot">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" MinWidth="150" />
             <ColumnDefinition Width="5" />
@@ -18,7 +18,7 @@
             <TextBlock x:Name="TerminalStatus" Text="Abriendo Windows PowerShell…" Foreground="White" TextWrapping="Wrap" Margin="16" VerticalAlignment="Center" />
         </Grid>
 
-        <GridSplitter Grid.Column="1"
+        <GridSplitter x:Name="PanelSplitter" Grid.Column="1"
                       Width="5"
                       HorizontalAlignment="Stretch"
                       VerticalAlignment="Stretch"

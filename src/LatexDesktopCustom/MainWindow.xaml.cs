@@ -21,6 +21,7 @@ public partial class MainWindow : Window
     private LatexDesktopCustom.Terminal.WindowsPowerShellWindow? powerShellWindow;
     private TransparentInputSurface? terminalInputSurface;
     private TransparentInputSurface? pdfInputSurface;
+    private SplitterInputSurface? splitterInputSurface;
 
     public MainWindow()
     {
@@ -34,9 +35,12 @@ public partial class MainWindow : Window
             UpdateInputSurfaces();
             terminalInputSurface.Show();
             pdfInputSurface.Show();
+            splitterInputSurface = new SplitterInputSurface(this, LayoutRoot, PanelSplitter);
+            splitterInputSurface.UpdateBounds();
+            splitterInputSurface.Show();
             StartPowerShell();
         };
-        Activated += (_, _) => powerShellWindow?.BringToFront();
+        Activated += (_, _) => { powerShellWindow?.BringToFront(); splitterInputSurface?.BringToFront(); };
         LocationChanged += (_, _) => UpdateInputSurfaces();
         LayoutUpdated += (_, _) => UpdateInputSurfaces();
         Closed += (_, _) => powerShellWindow?.Dispose();
@@ -52,7 +56,7 @@ public partial class MainWindow : Window
     {
         powerShellWindow?.Dispose();
         powerShellWindow = new LatexDesktopCustom.Terminal.WindowsPowerShellWindow(this, TerminalPanel);
-        powerShellWindow.Ready += () => { terminalInputSurface!.Content = null; TerminalStatus.Visibility = Visibility.Collapsed; };
+        powerShellWindow.Ready += () => { terminalInputSurface!.Content = null; TerminalStatus.Visibility = Visibility.Collapsed; splitterInputSurface?.BringToFront(); };
             powerShellWindow.Failed += message =>
             {
                 TerminalStatus.Text = message;
@@ -73,6 +77,7 @@ public partial class MainWindow : Window
         terminalInputSurface?.UpdateBounds();
         pdfInputSurface?.UpdateBounds();
         powerShellWindow?.UpdateBounds();
+        splitterInputSurface?.UpdateBounds();
     }
 
     private void EnableTransparentBackground()
