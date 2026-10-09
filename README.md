@@ -1,4 +1,4 @@
-\<div align="center"\>
+<div align="center"\>
 
 # 📝 LaTeX Desktop
 
@@ -193,7 +193,7 @@ git commit -m "Actualizar documento"
 7. Mejorar el manejo de errores y la experiencia de uso.
 
 ***
-\<div align="center"\>
+<div align="center"\>
 
 **Edita desde la terminal. Versiona con Git. Visualiza tu LaTeX.**
 \</div\>
