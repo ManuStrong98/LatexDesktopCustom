@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LatexDesktopCustom"
+        xmlns:terminal="clr-namespace:LatexDesktopCustom.Terminal"
         mc:Ignorable="d"
         Title="MainWindow" Icon="Assets/app-icon.ico" WindowStartupLocation="Manual">
     <Grid>
@@ -13,7 +14,11 @@
             <ColumnDefinition Width="*" MinWidth="150" />
         </Grid.ColumnDefinitions>
 
-        <Grid x:Name="TerminalPanel" Grid.Column="0" />
+        <Grid x:Name="TerminalPanel" Grid.Column="0" Background="#0C0C0C">
+            <terminal:PowerShellWindowHost x:Name="TerminalHost" />
+            <TextBlock x:Name="TerminalError" Visibility="Collapsed" Foreground="White"
+                       TextWrapping="Wrap" Margin="16" VerticalAlignment="Center" />
+        </Grid>
 
         <GridSplitter Grid.Column="1"
                       Width="5"

@@ -19,6 +19,13 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        TerminalHost.StartupFailed += message =>
+        {
+            TerminalHost.Visibility = Visibility.Collapsed;
+            TerminalError.Text = message;
+            TerminalError.Visibility = Visibility.Visible;
+        };
+        Closed += (_, _) => TerminalHost.Dispose();
 
         var workArea = SystemParameters.WorkArea;
         Width = workArea.Width * 0.9;
