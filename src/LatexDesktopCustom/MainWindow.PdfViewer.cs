@@ -74,6 +74,11 @@ public partial class MainWindow
                 if (compileArgument + 1 >= arguments.Length) throw new ArgumentException("Falta el archivo principal después de --compile.");
                 if (await OpenMainFileInEditorAsync(arguments[compileArgument + 1])) await CompileSelectedProjectAsync();
             }
+            else if (pdfArgument < 0)
+            {
+                if (selectedMainFile is not null) await OpenMainFileInEditorAsync(selectedMainFile);
+                else await PickMainFileAsync();
+            }
         }
         catch (Exception ex) when (!isClosing)
         {
@@ -128,6 +133,7 @@ public partial class MainWindow
 
     private void OpenPdfFile(string fileName, CompilationSnapshot? snapshot = null)
     {
+        PdfViewerStatusPanel.Visibility = Visibility.Collapsed;
         if (!viewerReady) throw new InvalidOperationException("El visor todavía no está listo.");
         var fullPath = Path.GetFullPath(fileName);
         if (!File.Exists(fullPath)) throw new FileNotFoundException("No se encontró el PDF.", fullPath);

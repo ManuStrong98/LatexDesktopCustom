@@ -6,6 +6,24 @@ namespace LatexDesktopCustom.Editor;
 
 internal sealed class NeovimSession
 {
+    public async Task<(string File, int Line, int Column)> GetPositionAsync(CancellationToken cancellationToken)
+    {
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeout.CancelAfter(TimeSpan.FromSeconds(2));
+        var start = new ProcessStartInfo("nvim") { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
+        foreach (var arg in new[] { "--headless", "--clean", "--server", Address, "--remote-expr", "json_encode([expand('%:p'),line('.'),col('.')])" }) start.ArgumentList.Add(arg);
+        using var process = Process.Start(start)!;
+        try
+        {
+            var output = process.StandardOutput.ReadToEndAsync(timeout.Token);
+            var error = process.StandardError.ReadToEndAsync(timeout.Token);
+            await process.WaitForExitAsync(timeout.Token);
+            await error;
+            using var json = JsonDocument.Parse(await output);
+            return (json.RootElement[0].GetString()!, json.RootElement[1].GetInt32(), json.RootElement[2].GetInt32());
+        }
+        finally { if (!process.HasExited) process.Kill(true); }
+    }
     public string Address { get; } = @"\\.\pipe\LatexDesktopNvim-" + Guid.NewGuid().ToString("N");
 
     public string StartupCommand(string? mainFile)
@@ -32,7 +50,7 @@ internal sealed class NeovimSession
         var arguments = JsonSerializer.Serialize(new object[] { Path.GetFullPath(projectDirectory), fullPath, line, column });
         // JSON carries paths as data; fnameescape handles spaces and Ex metacharacters.
         const string lua = "(function() local p = vim.fn.json_decode(_A); " +
-            "local b = vim.fn.bufnr(p[2]); if vim.bo.modified or (b > 0 and vim.bo[b].modified) then return \"unsaved\" end; " +
+            "for _,b in ipairs(vim.api.nvim_list_bufs()) do if vim.bo[b].modified then return \"unsaved\" end end; " +
             "vim.cmd(\"cd \" .. vim.fn.fnameescape(p[1])); " +
             "vim.cmd(\"edit \" .. vim.fn.fnameescape(p[2])); " +
             "if p[3] > 0 then local row = math.min(p[3], vim.api.nvim_buf_line_count(0)); " +

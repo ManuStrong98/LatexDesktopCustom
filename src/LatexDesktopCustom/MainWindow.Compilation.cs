@@ -23,13 +23,8 @@ public partial class MainWindow
             SelectMainFile(arguments[argumentIndex + 1]);
             return;
         }
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null)
-        {
-            var candidate = Path.Combine(directory.FullName, "plantilla_apa", "main.tex");
-            if (File.Exists(candidate)) { SelectMainFile(candidate); break; }
-            directory = directory.Parent;
-        }
+        var last = projectHistory.Items.FirstOrDefault();
+        if (last is not null && File.Exists(last.MainFile)) SelectMainFile(last.MainFile);
     }
 
     private void SelectMainFile(string path)
@@ -50,14 +45,28 @@ public partial class MainWindow
 
     private async Task<bool> OpenMainFileInEditorAsync(string path)
     {
+        if (compiling || openingProject) return false;
+        openingProject = true;
         SelectMainFileButton.IsEnabled = CompileButton.IsEnabled = false;
+        RecentProjectsButton.IsEnabled = false;
         try
         {
             if (neovimSession is null) throw new InvalidOperationException("Neovim todavía no está listo.");
+            await CaptureProjectPositionAsync();
             CompilationStatus.Text = "Abriendo archivo en Neovim…";
-            await neovimSession.OpenFileAsync(path, compilationCancellation.Token);
+            path = Path.GetFullPath(path);
+            var previous = projectHistory.Find(path);
+            var editorFile = previous?.EditorFile;
+            var root = Path.GetDirectoryName(path)!;
+            if (editorFile is not null && File.Exists(editorFile) && Path.GetFullPath(editorFile).StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+                await neovimSession.OpenLocationAsync(editorFile, root, previous!.Line, previous.Column, compilationCancellation.Token);
+            else await neovimSession.OpenFileAsync(path, compilationCancellation.Token);
             if (isClosing) return false;
+            if (!string.Equals(selectedMainFile, path, StringComparison.OrdinalIgnoreCase)) ClearProjectPdf();
             SelectMainFile(path);
+            projectOpened = true;
+            try { projectHistory.Open(path); }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { CompilationStatus.Text = "Proyecto abierto, pero no se pudo guardar el historial: " + ex.Message; return true; }
             CompilationStatus.Text = "Archivo abierto en Neovim. Directorio del proyecto actualizado.";
             powerShellWindow?.BringToFront();
             splitterInputSurface?.BringToFront();
@@ -75,6 +84,8 @@ public partial class MainWindow
         }
         finally
         {
+            openingProject = false;
+            if (!isClosing) RecentProjectsButton.IsEnabled = true;
             if (!isClosing) SelectMainFileButton.IsEnabled = CompileButton.IsEnabled = true;
         }
     }
@@ -83,10 +94,11 @@ public partial class MainWindow
 
     private async Task CompileSelectedProjectAsync()
     {
-        if (compiling || isClosing) return;
+        if (compiling || openingProject || isClosing) return;
         if (selectedMainFile is null && !await PickMainFileAsync()) return;
         if (selectedMainFile is null) return;
         compiling = true;
+        RecentProjectsButton.IsEnabled = false;
         CompileButton.IsEnabled = SelectMainFileButton.IsEnabled = false;
         CompilationStatus.Text = "Compilando con Overleaf…";
         OpenCompileLogButton.Visibility = Visibility.Collapsed;
@@ -121,6 +133,7 @@ public partial class MainWindow
         finally
         {
             compiling = false;
+            if (!isClosing) RecentProjectsButton.IsEnabled = true;
             if (!isClosing) CompileButton.IsEnabled = SelectMainFileButton.IsEnabled = true;
         }
     }

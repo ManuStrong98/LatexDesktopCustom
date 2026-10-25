@@ -39,6 +39,7 @@
             <Border Background="#F3F4F6" Padding="8">
                 <StackPanel>
                   <WrapPanel>
+                    <Button x:Name="RecentProjectsButton" Content="Proyectos recientes" Padding="12,6" Margin="0,0,6,0" Click="RecentProjects_Click" />
                     <Button x:Name="OpenPdfButton" Content="Abrir PDF" Padding="12,6"
                             IsEnabled="False" Click="OpenPdf_Click" />
                     <Button x:Name="SelectMainFileButton" Content="Seleccionar .tex" Padding="12,6" Margin="6,0,0,0" Click="SelectMainFile_Click" />

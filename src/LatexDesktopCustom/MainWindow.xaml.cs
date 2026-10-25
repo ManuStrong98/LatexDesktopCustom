@@ -27,6 +27,17 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        projectPositionTimer.Tick += async (_, _) => await CaptureProjectPositionAsync();
+        projectPositionTimer.Start();
+        Closing += async (_, e) =>
+        {
+            if (isClosing) return;
+            e.Cancel = true;
+            IsEnabled = false;
+            await CaptureProjectPositionAsync();
+            isClosing = true;
+            Close();
+        };
         PdfWebView.NavigationInputFailed += message => { if (!isClosing) CompilationStatus.Text = message; };
         ContentRendered += (_, _) =>
         {
@@ -50,6 +61,7 @@ public partial class MainWindow : Window
         Closed += (_, _) =>
         {
             isClosing = true;
+            projectPositionTimer.Stop();
             compilationCancellation.Cancel();
             compilationClient.Dispose();
             powerShellWindow?.Dispose();
