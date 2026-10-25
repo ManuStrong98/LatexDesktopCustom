@@ -29,6 +29,8 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        saveTimer.Tick += CheckNeovimSave;
+        saveTimer.Start();
         projectPositionTimer.Tick += async (_, _) => await CaptureProjectPositionAsync();
         projectPositionTimer.Start();
         Closing += async (_, e) =>
@@ -72,9 +74,11 @@ public partial class MainWindow : Window
         {
             isClosing = true;
             projectPositionTimer.Stop();
+            saveTimer.Stop();
             compilationCancellation.Cancel();
             compilationClient.Dispose();
             powerShellWindow?.Dispose();
+            neovimSession?.Dispose();
             PdfWebView.Dispose();
         };
 
@@ -88,6 +92,9 @@ public partial class MainWindow : Window
     private void StartPowerShell()
     {
         powerShellWindow?.Dispose();
+        neovimSession?.Dispose();
+        lastSaveNotification = null;
+        compilePending = false;
         neovimSession = new LatexDesktopCustom.Editor.NeovimSession();
         powerShellWindow = new LatexDesktopCustom.Terminal.WindowsPowerShellWindow(this, TerminalPanel,
             neovimSession.StartupCommand(selectedMainFile), selectedMainFile);

@@ -4,8 +4,41 @@ using System.Text.Json;
 
 namespace LatexDesktopCustom.Editor;
 
-internal sealed class NeovimSession
+internal sealed class NeovimSession : IDisposable
 {
+    private readonly string bridgeDirectory = Path.Combine(Path.GetTempPath(), "LatexDesktopNvim-" + Guid.NewGuid().ToString("N"));
+    public string SaveNotificationPath => Path.Combine(bridgeDirectory, "saved.json");
+    internal string SaveBridgeScript => Path.Combine(bridgeDirectory, "bridge.lua");
+    private static string LuaString(string value)
+    {
+        var equals = "=";
+        while (value.Contains("]" + equals + "]", StringComparison.Ordinal)) equals += "=";
+        return "[" + equals + "[" + value + "]" + equals + "]";
+    }
+
+    public NeovimSession()
+    {
+        Directory.CreateDirectory(bridgeDirectory);
+        var notification = LuaString(SaveNotificationPath.Replace('\\', '/'));
+        File.WriteAllText(SaveBridgeScript, "local destination = " + notification + "\n" + """
+            local group = vim.api.nvim_create_augroup('LatexDesktopSave', {clear=true})
+            vim.api.nvim_create_autocmd('BufWritePost', {group=group, callback=function(args)
+                local data = vim.json.encode({file=vim.api.nvim_buf_get_name(args.buf), nonce=tostring(vim.uv.hrtime())})
+                vim.fn.writefile({data}, destination)
+            end})
+            vim.api.nvim_create_autocmd('VimEnter', {group=group, once=true, callback=function()
+                vim.keymap.set({'n','i','v'}, '<C-s>', function() vim.cmd('write') end,
+                    {silent=true, desc='Guardar y compilar en LatexDesktop'})
+            end})
+            """);
+    }
+
+    public void Dispose()
+    {
+        try { File.Delete(SaveBridgeScript); File.Delete(SaveNotificationPath); Directory.Delete(bridgeDirectory); }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
+    }
     public async Task<(string File, int Line, int Column)> GetPositionAsync(CancellationToken cancellationToken)
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -30,6 +63,10 @@ internal sealed class NeovimSession
     {
         static string Quote(string value) => "'" + value.Replace("'", "''") + "'";
         var command = $"& nvim --listen {Quote(Address)}";
+        // Windows PowerShell 5.1 removes embedded double quotes when invoking
+        // native executables. Lua long strings survive that argument conversion.
+        var lua = "lua dofile(" + LuaString(SaveBridgeScript.Replace('\\', '/')) + ")";
+        command += " --cmd " + Quote(lua);
         if (mainFile is not null) command += $" -- {Quote(Path.GetFullPath(mainFile))}";
         return command;
     }
