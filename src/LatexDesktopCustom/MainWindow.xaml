@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LatexDesktopCustom"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         mc:Ignorable="d"
         Title="MainWindow" Icon="Assets/app-icon.ico" WindowStartupLocation="Manual"
         Background="#FFFF00FF">
@@ -29,6 +30,32 @@
                       ShowsPreview="False"
                       AutomationProperties.Name="Ajustar ancho de los paneles" />
 
-        <Grid x:Name="PdfViewerPanel" Grid.Column="2" />
+        <Grid x:Name="PdfViewerPanel" Grid.Column="2" Background="White">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Border Background="#F3F4F6" Padding="8">
+                <DockPanel>
+                    <Button x:Name="OpenPdfButton" Content="Abrir PDF" Padding="12,6"
+                            IsEnabled="False" Click="OpenPdf_Click" DockPanel.Dock="Left" />
+                    <TextBlock x:Name="PdfFileName" Text="Ningún PDF abierto" Margin="12,0,0,0"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                </DockPanel>
+            </Border>
+            <wv2:WebView2CompositionControl x:Name="PdfWebView" Grid.Row="1"
+                                           HorizontalAlignment="Stretch"
+                                           VerticalAlignment="Stretch"
+                                           AutomationProperties.Name="Visor PDF" />
+            <Border x:Name="PdfViewerStatusPanel" Grid.Row="1" Background="White" Padding="24">
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock x:Name="PdfViewerStatus" Text="Iniciando visor PDF…"
+                               TextWrapping="Wrap" Foreground="#374151" />
+                    <Button x:Name="RetryPdfViewerButton" Content="Reintentar"
+                            Visibility="Collapsed" HorizontalAlignment="Left"
+                            Margin="0,12,0,0" Padding="12,6" Click="RetryPdfViewer_Click" />
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </Window>

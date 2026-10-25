@@ -20,7 +20,7 @@ public partial class MainWindow : Window
 {
     private LatexDesktopCustom.Terminal.WindowsPowerShellWindow? powerShellWindow;
     private TransparentInputSurface? terminalInputSurface;
-    private TransparentInputSurface? pdfInputSurface;
+    private bool isClosing;
     private SplitterInputSurface? splitterInputSurface;
 
     public MainWindow()
@@ -31,19 +31,25 @@ public partial class MainWindow : Window
             EnableTransparentBackground();
             if (terminalInputSurface is not null) return;
             terminalInputSurface = new TransparentInputSurface(this, TerminalPanel);
-            pdfInputSurface = new TransparentInputSurface(this, PdfViewerPanel);
+
             UpdateInputSurfaces();
             terminalInputSurface.Show();
-            pdfInputSurface.Show();
+
             splitterInputSurface = new SplitterInputSurface(this, LayoutRoot, PanelSplitter);
             splitterInputSurface.UpdateBounds();
             splitterInputSurface.Show();
             StartPowerShell();
+            _ = InitializePdfViewerAsync();
         };
         Activated += (_, _) => { powerShellWindow?.BringToFront(); splitterInputSurface?.BringToFront(); };
         LocationChanged += (_, _) => UpdateInputSurfaces();
         LayoutUpdated += (_, _) => UpdateInputSurfaces();
-        Closed += (_, _) => powerShellWindow?.Dispose();
+        Closed += (_, _) =>
+        {
+            isClosing = true;
+            powerShellWindow?.Dispose();
+            PdfWebView.Dispose();
+        };
 
         var workArea = SystemParameters.WorkArea;
         Width = workArea.Width * 0.9;
@@ -75,7 +81,7 @@ public partial class MainWindow : Window
     private void UpdateInputSurfaces()
     {
         terminalInputSurface?.UpdateBounds();
-        pdfInputSurface?.UpdateBounds();
+
         powerShellWindow?.UpdateBounds();
         splitterInputSurface?.UpdateBounds();
     }
