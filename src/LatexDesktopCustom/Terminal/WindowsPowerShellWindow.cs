@@ -14,6 +14,8 @@ internal sealed class WindowsPowerShellWindow : IDisposable
 {
     private readonly Window owner;
     private readonly FrameworkElement panel;
+    private readonly string startupCommand;
+    private readonly string workingDirectory;
     private readonly string title = $"LatexDesktop-{Guid.NewGuid():N}";
     private readonly DispatcherTimer timer = new() { Interval = TimeSpan.FromMilliseconds(150) };
     private DateTime deadline;
@@ -26,10 +28,12 @@ internal sealed class WindowsPowerShellWindow : IDisposable
     public event Action? Ready;
     public event Action<string>? Failed;
 
-    public WindowsPowerShellWindow(Window owner, FrameworkElement panel)
+    public WindowsPowerShellWindow(Window owner, FrameworkElement panel, string startupCommand, string? mainFile = null)
     {
         this.owner = owner;
         this.panel = panel;
+        this.startupCommand = startupCommand;
+        workingDirectory = mainFile is null ? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) : System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(mainFile))!;
         timer.Tick += FindWindow;
     }
 
@@ -41,8 +45,8 @@ internal sealed class WindowsPowerShellWindow : IDisposable
             var shell = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "WindowsPowerShell", "v1.0", "powershell.exe");
             var start = new ProcessStartInfo(launcher) { UseShellExecute = false, WindowStyle = ProcessWindowStyle.Hidden };
             foreach (var argument in new[] { "--window", "new", "new-tab", "--profile", "Windows PowerShell", "--title", title,
-                "--suppressApplicationTitle", "--startingDirectory", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                shell, "-NoLogo", "-NoExit", "-EncodedCommand", Convert.ToBase64String(Encoding.Unicode.GetBytes("nvim")) })
+                "--suppressApplicationTitle", "--startingDirectory", workingDirectory,
+                shell, "-NoLogo", "-NoExit", "-EncodedCommand", Convert.ToBase64String(Encoding.Unicode.GetBytes(startupCommand)) })
                 start.ArgumentList.Add(argument);
             using var process = Process.Start(start) ?? throw new InvalidOperationException("No se pudo iniciar Windows Terminal.");
             deadline = DateTime.UtcNow.AddSeconds(30);

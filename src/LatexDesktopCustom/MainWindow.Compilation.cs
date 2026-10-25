@@ -16,6 +16,13 @@ public partial class MainWindow
 
     private void ConfigureCompilationProject()
     {
+        var arguments = Environment.GetCommandLineArgs();
+        var argumentIndex = Array.IndexOf(arguments, "--compile");
+        if (argumentIndex >= 0 && argumentIndex + 1 < arguments.Length && File.Exists(arguments[argumentIndex + 1]))
+        {
+            SelectMainFile(arguments[argumentIndex + 1]);
+            return;
+        }
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory is not null)
         {
@@ -32,10 +39,44 @@ public partial class MainWindow
         MainFileLabel.ToolTip = selectedMainFile;
     }
 
-    private void SelectMainFile_Click(object sender, RoutedEventArgs e)
+    private async void SelectMainFile_Click(object sender, RoutedEventArgs e) => await PickMainFileAsync();
+
+    private async Task<bool> PickMainFileAsync()
     {
         var picker = new Microsoft.Win32.OpenFileDialog { Title = "Seleccionar archivo principal LaTeX", Filter = "Archivos LaTeX (*.tex)|*.tex", CheckFileExists = true };
-        if (picker.ShowDialog(this) == true) SelectMainFile(picker.FileName);
+        if (selectedMainFile is not null) picker.InitialDirectory = Path.GetDirectoryName(selectedMainFile);
+        return picker.ShowDialog(this) == true && await OpenMainFileInEditorAsync(picker.FileName);
+    }
+
+    private async Task<bool> OpenMainFileInEditorAsync(string path)
+    {
+        SelectMainFileButton.IsEnabled = CompileButton.IsEnabled = false;
+        try
+        {
+            if (neovimSession is null) throw new InvalidOperationException("Neovim todavía no está listo.");
+            CompilationStatus.Text = "Abriendo archivo en Neovim…";
+            await neovimSession.OpenFileAsync(path, compilationCancellation.Token);
+            if (isClosing) return false;
+            SelectMainFile(path);
+            CompilationStatus.Text = "Archivo abierto en Neovim. Directorio del proyecto actualizado.";
+            powerShellWindow?.BringToFront();
+            splitterInputSurface?.BringToFront();
+            return true;
+        }
+        catch (OperationCanceledException)
+        {
+            if (!isClosing) CompilationStatus.Text = "Neovim no respondió a tiempo. Comprueba que siga abierto y vuelve a seleccionar el archivo.";
+            return false;
+        }
+        catch (Exception ex)
+        {
+            if (!isClosing) CompilationStatus.Text = ex.Message;
+            return false;
+        }
+        finally
+        {
+            if (!isClosing) SelectMainFileButton.IsEnabled = CompileButton.IsEnabled = true;
+        }
     }
 
     private async void Compile_Click(object sender, RoutedEventArgs e) => await CompileSelectedProjectAsync();
@@ -43,7 +84,8 @@ public partial class MainWindow
     private async Task CompileSelectedProjectAsync()
     {
         if (compiling || isClosing) return;
-        if (selectedMainFile is null) { SelectMainFile_Click(this, new RoutedEventArgs()); if (selectedMainFile is null) return; }
+        if (selectedMainFile is null && !await PickMainFileAsync()) return;
+        if (selectedMainFile is null) return;
         compiling = true;
         CompileButton.IsEnabled = SelectMainFileButton.IsEnabled = false;
         CompilationStatus.Text = "Compilando con Overleaf…";

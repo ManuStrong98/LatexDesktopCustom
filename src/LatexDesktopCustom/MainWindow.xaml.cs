@@ -22,6 +22,7 @@ public partial class MainWindow : Window
     private TransparentInputSurface? terminalInputSurface;
     private bool isClosing;
     private SplitterInputSurface? splitterInputSurface;
+    private LatexDesktopCustom.Editor.NeovimSession? neovimSession;
 
     public MainWindow()
     {
@@ -38,6 +39,7 @@ public partial class MainWindow : Window
             splitterInputSurface = new SplitterInputSurface(this, LayoutRoot, PanelSplitter);
             splitterInputSurface.UpdateBounds();
             splitterInputSurface.Show();
+            ConfigureCompilationProject();
             StartPowerShell();
             _ = InitializePdfViewerAsync();
         };
@@ -63,7 +65,9 @@ public partial class MainWindow : Window
     private void StartPowerShell()
     {
         powerShellWindow?.Dispose();
-        powerShellWindow = new LatexDesktopCustom.Terminal.WindowsPowerShellWindow(this, TerminalPanel);
+        neovimSession = new LatexDesktopCustom.Editor.NeovimSession();
+        powerShellWindow = new LatexDesktopCustom.Terminal.WindowsPowerShellWindow(this, TerminalPanel,
+            neovimSession.StartupCommand(selectedMainFile), selectedMainFile);
         powerShellWindow.Ready += () => { terminalInputSurface!.Content = null; TerminalStatus.Visibility = Visibility.Collapsed; splitterInputSurface?.BringToFront(); };
             powerShellWindow.Failed += message =>
             {
