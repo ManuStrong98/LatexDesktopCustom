@@ -8,6 +8,37 @@
         mc:Ignorable="d"
         Title="MainWindow" Icon="Assets/app-icon.ico" WindowStartupLocation="Manual"
         Background="#FFFF00FF">
+    <Window.Resources>
+        <Style x:Key="ToolbarButton" TargetType="Button">
+            <Setter Property="Width" Value="30" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Margin" Value="1,0" />
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="Foreground" Value="#E4E7F5" />
+            <Setter Property="Background" Value="#000023" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBackground" Background="{TemplateBinding Background}" CornerRadius="3">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ButtonBackground" Property="Background" Value="#23234A" /></Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="ButtonBackground" Property="Background" Value="#303060" /></Trigger>
+                            <Trigger Property="IsPressed" Value="True"><Setter TargetName="ButtonBackground" Property="Background" Value="#404075" /></Trigger>
+                            <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.35" /></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="ContextMenu">
+            <Setter Property="Background" Value="#000023" />
+            <Setter Property="Foreground" Value="#E4E7F5" />
+        </Style>
+    </Window.Resources>
     <Grid x:Name="LayoutRoot">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" MinWidth="150" />
@@ -15,57 +46,64 @@
             <ColumnDefinition Width="*" MinWidth="150" />
         </Grid.ColumnDefinitions>
 
-        <Grid x:Name="TerminalPanel" Grid.Column="0">
-            <TextBlock x:Name="TerminalStatus" Text="Abriendo Windows PowerShell…" Foreground="White" TextWrapping="Wrap" Margin="16" VerticalAlignment="Center" />
-        </Grid>
-
         <GridSplitter x:Name="PanelSplitter" Grid.Column="1"
                       Width="5"
                       HorizontalAlignment="Stretch"
                       VerticalAlignment="Stretch"
-                      Background="#B0B0B0"
+                      Background="#303052"
                       Cursor="SizeWE"
                       ResizeDirection="Columns"
                       ResizeBehavior="PreviousAndNext"
                       ShowsPreview="False"
                       AutomationProperties.Name="Ajustar ancho de los paneles" />
 
-        <Grid x:Name="PdfViewerPanel" Grid.Column="2" Background="White">
+        <Grid Grid.Column="0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            <Border Background="#F3F4F6" Padding="8">
-                <StackPanel>
+            <Border Background="#000023" Padding="3">
                   <WrapPanel>
-                    <Button x:Name="RecentProjectsButton" Content="Proyectos recientes" Padding="12,6" Margin="0,0,6,0" Click="RecentProjects_Click" />
-                    <Button x:Name="OpenPdfButton" Content="Abrir PDF" Padding="12,6"
+                    <Button x:Name="RecentProjectsButton" Style="{StaticResource ToolbarButton}" Content="&#xE81C;" ToolTip="Proyectos recientes" AutomationProperties.Name="Proyectos recientes" Click="RecentProjects_Click" />
+                    <Button x:Name="OpenPdfButton" Style="{StaticResource ToolbarButton}" Content="&#xE8A5;" ToolTip="Abrir PDF" AutomationProperties.Name="Abrir PDF"
                             IsEnabled="False" Click="OpenPdf_Click" />
-                    <Button x:Name="SelectMainFileButton" Content="Seleccionar .tex" Padding="12,6" Margin="6,0,0,0" Click="SelectMainFile_Click" />
-                    <Button x:Name="CompileButton" Content="Compilar" Padding="12,6" Margin="6,0,0,0" IsEnabled="False" Click="Compile_Click" />
-                    <Button x:Name="DownloadPdfButton" Content="Descargar PDF" Padding="12,6" Margin="6,0,0,0" IsEnabled="False" Click="DownloadPdf_Click" />
-                    <Button x:Name="OpenCompileLogButton" Content="Ver log" Padding="12,6" Margin="6,0,0,0" Visibility="Collapsed" Click="OpenCompileLog_Click" />
+                    <Button x:Name="SelectMainFileButton" Style="{StaticResource ToolbarButton}" Content="&#xE8E5;" ToolTip="Seleccionar .tex" AutomationProperties.Name="Seleccionar .tex" Click="SelectMainFile_Click" />
+                    <Button x:Name="CompileButton" Style="{StaticResource ToolbarButton}" Content="&#xE768;" ToolTip="Compilar" AutomationProperties.Name="Compilar" IsEnabled="False" Click="Compile_Click" />
+                    <Button x:Name="DownloadPdfButton" Style="{StaticResource ToolbarButton}" Content="&#xE896;" ToolTip="Descargar PDF" AutomationProperties.Name="Descargar PDF" IsEnabled="False" Click="DownloadPdf_Click" />
+                    <Button x:Name="OpenCompileLogButton" Style="{StaticResource ToolbarButton}" Content="&#xE9D9;" ToolTip="Ver log" AutomationProperties.Name="Ver log" Visibility="Collapsed" Click="OpenCompileLog_Click" />
                   </WrapPanel>
-                    <TextBlock x:Name="MainFileLabel" Text="Selecciona el archivo principal .tex" Margin="0,6,0,0" TextTrimming="CharacterEllipsis" />
-                    <TextBlock x:Name="PdfFileName" Text="Ningún PDF abierto" Margin="0,4,0,0"
-                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                </StackPanel>
             </Border>
-            <pdfviewer:PdfWebViewControl x:Name="PdfWebView" Grid.Row="1"
+            <Grid x:Name="TerminalPanel" Grid.Row="1">
+                <TextBlock x:Name="TerminalStatus" Text="Abriendo Windows PowerShell…" Foreground="White" TextWrapping="Wrap" Margin="16" VerticalAlignment="Center" />
+            </Grid>
+        </Grid>
+
+        <Grid x:Name="PdfViewerPanel" Grid.Column="2" Background="#000023">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <pdfviewer:PdfWebViewControl x:Name="PdfWebView"
                                            HorizontalAlignment="Stretch"
                                            VerticalAlignment="Stretch"
                                            AutomationProperties.Name="Visor PDF" />
-            <Border x:Name="PdfViewerStatusPanel" Grid.Row="1" Background="White" Padding="24">
+            <Border x:Name="PdfViewerStatusPanel" Background="#000023" Padding="24">
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock x:Name="PdfViewerStatus" Text="Iniciando visor PDF…"
-                               TextWrapping="Wrap" Foreground="#374151" />
+                               TextWrapping="Wrap" Foreground="#E4E7F5" />
                     <Button x:Name="RetryPdfViewerButton" Content="Reintentar"
                             Visibility="Collapsed" HorizontalAlignment="Left"
                             Margin="0,12,0,0" Padding="12,6" Click="RetryPdfViewer_Click" />
                 </StackPanel>
             </Border>
-            <TextBlock x:Name="CompilationStatus" Grid.Row="2" Margin="10,6" TextWrapping="Wrap" Foreground="#374151" />
+            <Border Grid.Row="1" Background="#000023" Padding="8,4">
+                <StackPanel>
+                    <TextBlock x:Name="MainFileLabel" Text="Selecciona el archivo principal .tex" Foreground="#C9CDE5" FontSize="11" TextTrimming="CharacterEllipsis" />
+                    <TextBlock x:Name="PdfFileName" Text="Ningún PDF abierto" Foreground="#9299BD" FontSize="11" TextTrimming="CharacterEllipsis" />
+                    <TextBlock x:Name="CompilationStatus" Foreground="#E4E7F5" FontSize="11" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
         </Grid>
     </Grid>
 </Window>

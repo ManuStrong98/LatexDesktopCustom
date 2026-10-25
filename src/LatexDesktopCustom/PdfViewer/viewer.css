@@ -1,12 +1,12 @@
-html, body { height: 100%; margin: 0; overflow: hidden; font: 13px 'Segoe UI', sans-serif; color: #263238; }
-nav { position: absolute; inset: 0 0 auto; height: 44px; box-sizing: border-box; padding: 6px; display: flex; align-items: center; gap: 5px; background: #f3f4f6; border-bottom: 1px solid #d1d5db; }
-button, input, select { font: inherit; min-height: 28px; border: 1px solid #c1c7ce; border-radius: 3px; background: white; color: inherit; }
+html, body { height: 100%; margin: 0; overflow: hidden; font: 13px 'Segoe UI', sans-serif; color: #e4e7f5; background: #000023; color-scheme: dark; }
+nav { position: absolute; inset: 0 0 auto; height: 44px; box-sizing: border-box; padding: 6px; display: flex; align-items: center; gap: 5px; background: #000023; border-bottom: 1px solid #303052; }
+button, input, select { font: inherit; min-height: 28px; border: 1px solid #303052; border-radius: 3px; background: #000023; color: inherit; }
 button { min-width: 28px; cursor: pointer; }
 button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid #2563eb; }
 #page { width: 45px; text-align: center; }
 #zoom { max-width: 160px; min-width: 85px; }
-#viewerContainer { position: absolute; inset: 44px 0 28px; overflow: auto; background: #525659; }
-#empty { position: absolute; inset: 44px 0 28px; display: grid; align-content: center; justify-items: center; background: white; padding: 20px; text-align: center; }
+#viewerContainer { position: absolute; inset: 44px 0 28px; overflow: auto; background: #000023; }
+#empty { position: absolute; inset: 44px 0 28px; display: grid; align-content: center; justify-items: center; background: #000023; padding: 20px; text-align: center; }
 #empty h1 { font-size: 22px; font-weight: 600; }
-footer { position: absolute; inset: auto 0 0; height: 28px; box-sizing: border-box; padding: 5px 8px; background: #f3f4f6; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+footer { position: absolute; inset: auto 0 0; height: 28px; box-sizing: border-box; padding: 5px 8px; background: #000023; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
 @media (max-width: 390px) { nav { gap: 2px; padding: 4px 2px; } #zoom { max-width: 100px; } }
