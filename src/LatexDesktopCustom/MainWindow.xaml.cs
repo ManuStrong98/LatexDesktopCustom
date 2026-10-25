@@ -79,10 +79,10 @@ public partial class MainWindow : Window
         };
 
         var workArea = SystemParameters.WorkArea;
-        Width = workArea.Width * 0.9;
-        Height = workArea.Height * 0.9;
-        Left = workArea.Left + (workArea.Width - Width) / 2;
-        Top = workArea.Top + (workArea.Height - Height) / 2;
+        Width = Math.Max(1, workArea.Width - 108);
+        Height = Math.Max(1, workArea.Height - 50);
+        Left = workArea.Left + 54;
+        Top = workArea.Top + 25;
     }
 
     private void StartPowerShell()
