@@ -16,6 +16,7 @@ public partial class MainWindow
 
     private string? displayedDocumentId;
     private CompilationSnapshot? displayedCompilation;
+    private bool firstCompiledPdfOpened;
 
     private async Task InitializePdfViewerAsync()
     {
@@ -140,6 +141,7 @@ public partial class MainWindow
         if (!string.Equals(Path.GetExtension(fullPath), ".pdf", StringComparison.OrdinalIgnoreCase)) throw new ArgumentException("Selecciona un archivo PDF.");
         var bytes = File.ReadAllBytes(fullPath);
         var preservePosition = snapshot is not null && displayedCompilation?.ProjectDirectory == snapshot.ProjectDirectory;
+        var initialCompileView = snapshot is not null && !firstCompiledPdfOpened;
 
         displayedDocumentId = Guid.NewGuid().ToString("N");
         displayedCompilation = snapshot;
@@ -151,7 +153,8 @@ public partial class MainWindow
         {
             type = "open", documentId = displayedDocumentId,
 
-            name = Path.GetFileName(fullPath), syncEnabled = snapshot is not null, preservePosition
+            name = Path.GetFileName(fullPath), syncEnabled = snapshot is not null, preservePosition, initialCompileView
         }));
+        if (snapshot is not null) firstCompiledPdfOpened = true;
     }
 }

@@ -31,7 +31,7 @@ function navigateAt(target, clientX, clientY) {
 async function openDocument(message, data) {
   const current = ++generation;
   const previous = message.preservePosition && viewer.pdfDocument
-    ? { page: viewer.currentPageNumber, scale: viewer.currentScaleValue } : null;
+    ? { page: viewer.currentPageNumber, scale: viewer.currentScaleValue, left: container.scrollLeft, top: container.scrollTop } : null;
   documentId = message.documentId;
   syncEnabled = message.syncEnabled;
   status.textContent = 'Cargando PDF…';
@@ -55,8 +55,17 @@ async function openDocument(message, data) {
     viewer.setDocument(pdf);
     await viewer.firstPagePromise;
     if (current !== generation) return;
-    viewer.currentScaleValue = previous?.scale || 'page-width';
+    viewer.currentScaleValue = message.initialCompileView ? '0.89' : previous?.scale || 'page-width';
     viewer.currentPageNumber = Math.min(previous?.page || 1, pdf.numPages);
+    // Wait for PDF.js and the browser to lay out the pages at their new scale.
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    if (current !== generation) return;
+    if (message.initialCompileView) {
+      container.scrollLeft = Math.max(0, (container.scrollWidth - container.clientWidth) / 2);
+    } else if (previous) {
+      container.scrollLeft = previous.left;
+      container.scrollTop = previous.top;
+    }
     document.getElementById('pages').textContent = '/ ' + pdf.numPages;
     pageInput.max = pdf.numPages;
     status.textContent = syncEnabled ? 'Doble clic para abrir el archivo y la línea en Neovim.' : 'PDF local: compila desde la app para activar SyncTeX.';
