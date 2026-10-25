@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://127.0.0.1:5017");
-builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 7 * 1024 * 1024);
+builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 32 * 1024 * 1024);
 builder.Services.AddHttpClient("overleaf", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["Overleaf:Url"] ?? "http://127.0.0.1");
@@ -21,24 +21,43 @@ app.MapGet("/health", () => Results.Ok(new { status = "ready" }));
 app.MapPost("/api/projects/{projectId}/compile", async (string projectId, CompileRequest request, HttpContext context) =>
 {
     if (!ValidId(projectId) || request.Resources is not { Count: > 0 and <= 2000 }
-        || !ValidPath(request.RootResourcePath) || request.Resources.Any(file => file is null || !ValidPath(file.Path) || file.Content is null)
-        || !request.Resources.Any(file => file.Path == request.RootResourcePath)
+        || !ValidPath(request.RootResourcePath) || request.Resources.Any(file => file is null || !ValidPath(file.Path) || (file.Content is null) == (file.Base64 is null))
+        || !request.Resources.Any(file => file.Path == request.RootResourcePath && file.Content is not null)
         || request.Resources.Select(file => file.Path).Distinct(StringComparer.Ordinal).Count() != request.Resources.Count
         || request.Compiler is not ("pdflatex" or "xelatex" or "lualatex" or "latex"))
         return Results.BadRequest(new { error = "Proyecto, rutas, recursos o compilador inválidos." });
+    long sourceBytes = 0;
+    long textBytes = 0;
+    try
+    {
+        foreach (var file in request.Resources)
+        {
+            var size = file.Content is not null ? Encoding.UTF8.GetByteCount(file.Content) : Convert.FromBase64String(file.Base64!).Length;
+            sourceBytes += size;
+            if (file.Content is not null) textBytes += size;
+        }
+    }
+    catch (FormatException) { return Results.BadRequest(new { error = "Un recurso binario contiene Base64 inválido." }); }
+    if (sourceBytes > 20 * 1024 * 1024 || textBytes > 5 * 1024 * 1024)
+        return Results.Json(new { error = "El proyecto supera 20 MB de recursos o 5 MB de texto." }, statusCode: 413);
     if (!await compileLock.WaitAsync(0, context.RequestAborted))
         return Results.Conflict(new { error = "Ya hay una compilación en curso. Inténtalo al terminar." });
     try
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted);
         timeout.CancelAfter(TimeSpan.FromSeconds(100));
+        var binaries = request.Resources.Where(file => file.Base64 is not null).ToArray();
+        await using var binaryServer = binaries.Length == 0 ? null : await BinaryResourceServer.StartAsync(container, binaries, timeout.Token);
+        var resources = request.Resources.Select(file => file.Content is not null
+            ? new Dictionary<string, object> { ["path"] = file.Path, ["content"] = file.Content }
+            : new Dictionary<string, object> { ["path"] = file.Path, ["url"] = binaryServer!.UrlFor(file.Path) });
         var payload = JsonSerializer.Serialize(new
         {
             compile = new
             {
                 options = new { compiler = request.Compiler, timeout = 60 },
                 rootResourcePath = request.RootResourcePath,
-                resources = request.Resources
+                resources
             }
         }, jsonOptions);
         var response = await CallClsi(container, $"/project/{projectId}/compile", payload, timeout.Token);
@@ -129,4 +148,4 @@ static async Task<string> CallClsi(string container, string path, string payload
 }
 
 record CompileRequest(string RootResourcePath, List<ProjectResource> Resources, string Compiler = "pdflatex");
-record ProjectResource(string Path, string Content);
+record ProjectResource(string Path, string? Content = null, string? Base64 = null);

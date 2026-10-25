@@ -26,7 +26,7 @@ Configuración opcional mediante variables de entorno:
 ## API
 
 - `GET /health`: disponibilidad del adaptador (no verifica Docker).
-- `POST /api/projects/{id}/compile`: compila recursos de texto. El ID contiene 24 caracteres hexadecimales.
+- `POST /api/projects/{id}/compile`: compila recursos de texto y binarios. El ID contiene 24 caracteres hexadecimales.
 - `GET /api/projects/{id}/builds/{buildId}/files/output.pdf`: entrega el PDF.
 - La misma ruta con `output.log` o `output.synctex.gz` entrega esas salidas.
 
@@ -35,7 +35,8 @@ Configuración opcional mediante variables de entorno:
   "rootResourcePath": "main.tex",
   "compiler": "pdflatex",
   "resources": [
-    { "path": "main.tex", "content": "\\documentclass{article}\\begin{document}Hola\\end{document}" }
+    { "path": "main.tex", "content": "\\documentclass{article}\\begin{document}Hola\\end{document}" },
+    { "path": "imagenes/figura.png", "base64": "...bytes del archivo codificados en Base64..." }
   ]
 }
 ```
@@ -44,10 +45,24 @@ Devuelve `status`, `buildId`, `pdfUrl`, `logUrl` y `error`. HTTP 200 no garantiz
 
 ## Alcance de esta etapa
 
-Se envían archivos de texto (incluidos `.tex`, `.bib`, `.sty` y `.cls`) conservando subcarpetas. El directorio del archivo principal es la raíz del proyecto. La carga de imágenes y otros binarios queda para la siguiente etapa. No se publica el proyecto en la lista de proyectos del editor web.
+Se envían archivos de texto (incluidos `.tex`, `.bib`, `.sty` y `.cls`) y recursos binarios conservando subcarpetas. Cada recurso debe tener exactamente uno de los campos `content` o `base64`. El directorio del archivo principal es la raíz del proyecto. No se publica el proyecto en la lista de proyectos del editor web.
+
+Los binarios se ofrecen a CLSI mediante un servidor HTTP temporal de Node dentro del contenedor existente. Escucha únicamente en su loopback, usa un token aleatorio por compilación y entrega solo los archivos de esa petición. Se cierra al terminar, fallar o cancelar; tiene además un plazo de seguridad de 120 segundos. No se publican puertos adicionales, no se escribe la imagen en el repositorio de Overleaf y no se cambia el Compose.
+
+El cliente incluye PNG, JPEG, PDF, EPS, PS, SVG, WebP, GIF, BMP, TIFF y fuentes OTF/TTF/WOFF/WOFF2. Poder transmitir un formato no significa que pdfLaTeX pueda dibujarlo: PNG, JPEG y PDF están probados; otros formatos pueden necesitar conversión o un motor/paquete específico.
+
+Límites: 2000 archivos, 20 MB de recursos sin codificar, 5 MB de texto y 32 MB de petición JSON. No se recorren enlaces simbólicos ni directorios de Git, dependencias o compilación.
 
 La app guarda cada resultado en `%LOCALAPPDATA%\LatexDesktopCustom\Builds`, actualiza WebView2 al obtener un PDF y conserva el PDF anterior si falla. **Ver log** abre el diagnóstico recibido del compilador.
 
-## Plantilla APA
+## Prueba de integración
 
-En la prueba con el contenedor actual faltaron el idioma español de Babel y `newtxtext.sty`. Esto es una dependencia de TeX Live en el contenedor, no un fallo del adaptador. No se modificó la plantilla ni se instalaron paquetes en Overleaf automáticamente. Otros paquetes podrían faltar al resolver los primeros errores.
+Con Docker, `sharelatex` y este adaptador funcionando, desde la raíz:
+
+```powershell
+dotnet run --project tests/BinaryCompilation.Integration
+```
+
+Prueba el cliente C# real con texto, PNG, JPEG y un PDF incluido; nombres con espacios y acentos; cambio de imagen con el mismo nombre; y rechazo de Base64 y rutas inválidos. Utiliza `pdfimages` dentro de `sharelatex` para verificar las dimensiones de las imágenes incrustadas, sin instalar herramientas en Windows. Conserva los archivos de prueba en `artifacts/binary-integration` y la caché de PDFs de la app.
+
+Los paquetes de TeX Live necesarios siguen dependiendo del documento. No se instalan automáticamente ni se modifica la plantilla.
