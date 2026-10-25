@@ -61,7 +61,6 @@ public partial class MainWindow
         displayedDocumentId = null;
         displayedCompilation = null;
         compileLogPath = null;
-        OpenCompileLogButton.Visibility = Visibility.Collapsed;
         PdfFileName.Text = "Ningún PDF abierto";
         PdfViewerStatus.Text = "Compila el proyecto para visualizar su PDF.";
         RetryPdfViewerButton.Visibility = Visibility.Collapsed;

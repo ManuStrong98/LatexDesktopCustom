@@ -6,6 +6,7 @@ namespace LatexDesktopCustom.Editor;
 
 internal sealed class NeovimSession : IDisposable
 {
+    private bool startupExplorerOpened;
     private readonly string bridgeDirectory = Path.Combine(Path.GetTempPath(), "LatexDesktopNvim-" + Guid.NewGuid().ToString("N"));
     public string SaveNotificationPath => Path.Combine(bridgeDirectory, "saved.json");
     internal string SaveBridgeScript => Path.Combine(bridgeDirectory, "bridge.lua");
@@ -84,7 +85,7 @@ internal sealed class NeovimSession : IDisposable
         cancellationToken = timeout.Token;
         var fullPath = Path.GetFullPath(mainFile);
         if (!File.Exists(fullPath)) throw new FileNotFoundException("No se encontró el archivo LaTeX.", fullPath);
-        var arguments = JsonSerializer.Serialize(new object[] { Path.GetFullPath(projectDirectory), fullPath, line, column });
+        var arguments = JsonSerializer.Serialize(new object[] { Path.GetFullPath(projectDirectory), fullPath, line, column, !startupExplorerOpened });
         // JSON carries paths as data; fnameescape handles spaces and Ex metacharacters.
         const string lua = "(function() local p = vim.fn.json_decode(_A); " +
             "for _,b in ipairs(vim.api.nvim_list_bufs()) do if vim.bo[b].modified then return \"unsaved\" end end; " +
@@ -93,6 +94,8 @@ internal sealed class NeovimSession : IDisposable
             "if p[3] > 0 then local row = math.min(p[3], vim.api.nvim_buf_line_count(0)); " +
             "local text = vim.api.nvim_buf_get_lines(0,row-1,row,false)[1] or \"\"; " +
             "vim.api.nvim_win_set_cursor(0,{row,math.min(p[4]-1,#text)}); vim.cmd(\"normal! zvzz\"); end; " +
+            "if p[5] then vim.schedule(function() local ok,s = pcall(require, \"snacks\"); " +
+            "if ok then s.explorer({cwd=p[1]}) end end) end; " +
             "return \"opened\" end)()";
         var expression = "luaeval('" + lua.Replace("'", "''") + "', '" + arguments.Replace("'", "''") + "')";
         var deadline = DateTime.UtcNow.AddSeconds(12);
@@ -115,7 +118,7 @@ internal sealed class NeovimSession : IDisposable
                 var error = (await stderr).Trim();
                 if (process.ExitCode == 0)
                 {
-                    if (result == "opened") return;
+                    if (result == "opened") { startupExplorerOpened = true; return; }
                     if (result == "unsaved") throw new InvalidOperationException("Guarda los cambios del archivo actual en Neovim antes de cambiar de archivo.");
                     throw new InvalidOperationException($"Neovim no pudo abrir el archivo: {result} {error}");
                 }

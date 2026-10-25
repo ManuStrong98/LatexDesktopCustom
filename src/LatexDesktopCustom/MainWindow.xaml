@@ -82,7 +82,7 @@
                     <Button x:Name="SelectMainFileButton" Style="{StaticResource ToolbarButton}" Content="&#xE8E5;" ToolTip="Seleccionar .tex" AutomationProperties.Name="Seleccionar .tex" Click="SelectMainFile_Click" />
                     <Button x:Name="CompileButton" Style="{StaticResource ToolbarButton}" Content="&#xE768;" ToolTip="Compilar" AutomationProperties.Name="Compilar" IsEnabled="False" Click="Compile_Click" />
                     <Button x:Name="DownloadPdfButton" Style="{StaticResource ToolbarButton}" Content="&#xE896;" ToolTip="Descargar PDF" AutomationProperties.Name="Descargar PDF" IsEnabled="False" Click="DownloadPdf_Click" />
-                    <Button x:Name="OpenCompileLogButton" Style="{StaticResource ToolbarButton}" Content="&#xE9D9;" ToolTip="Ver log" AutomationProperties.Name="Ver log" Visibility="Collapsed" Click="OpenCompileLog_Click" />
+                    <Button x:Name="OpenCompileLogButton" Style="{StaticResource ToolbarButton}" Content="&#xE9D9;" ToolTip="Ver log" AutomationProperties.Name="Ver log" Click="OpenCompileLog_Click" />
                   </WrapPanel>
             </Border>
             <Grid x:Name="TerminalPanel" Grid.Row="1">

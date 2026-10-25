@@ -118,13 +118,11 @@ public partial class MainWindow
         RecentProjectsButton.IsEnabled = false;
         CompileButton.IsEnabled = SelectMainFileButton.IsEnabled = false;
         CompilationStatus.Text = "Compilando con Overleaf…";
-        OpenCompileLogButton.Visibility = Visibility.Collapsed;
         try
         {
             var result = await compilationClient.CompileAsync(selectedMainFile, compilationCancellation.Token);
             if (isClosing) return;
             compileLogPath = result.LogPath;
-            OpenCompileLogButton.Visibility = compileLogPath is null ? Visibility.Collapsed : Visibility.Visible;
             if (result.PdfPath is not null)
             {
                 OpenPdfFile(result.PdfPath, result.Snapshot);
@@ -159,6 +157,13 @@ public partial class MainWindow
 
     private void OpenCompileLog_Click(object sender, RoutedEventArgs e)
     {
+        if (compileLogPath is null || !File.Exists(compileLogPath))
+        {
+            CompilationStatus.Text = compiling
+                ? "El log estará disponible cuando termine la compilación."
+                : "Todavía no hay un log disponible. Compila el proyecto para generarlo.";
+            return;
+        }
         if (compileLogPath is not null && File.Exists(compileLogPath))
         {
             var start = new ProcessStartInfo("notepad.exe") { UseShellExecute = false };
