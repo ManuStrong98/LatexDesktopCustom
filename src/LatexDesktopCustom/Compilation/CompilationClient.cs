@@ -22,6 +22,7 @@ internal sealed class CompilationClient : IDisposable
         var fullPath = Path.GetFullPath(mainFile);
         var directory = Path.GetDirectoryName(fullPath)!;
         var resources = new List<object>();
+        var sourceHashes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         long sourceBytes = 0;
         long textBytes = 0;
         var enumeration = new EnumerationOptions { RecurseSubdirectories = true, AttributesToSkip = FileAttributes.ReparsePoint | FileAttributes.Hidden, IgnoreInaccessible = false };
@@ -37,7 +38,11 @@ internal sealed class CompilationClient : IDisposable
             if (sourceBytes > 20 * 1024 * 1024 || textBytes > 5 * 1024 * 1024 || resources.Count >= 2000)
                 throw new InvalidOperationException("El proyecto supera el límite de 20 MB de recursos, 5 MB de texto o 2000 archivos.");
             if (text)
-                resources.Add(new { path = relative, content = await File.ReadAllTextAsync(file, Encoding.UTF8, cancellationToken) });
+            {
+                var content = await File.ReadAllTextAsync(file, Encoding.UTF8, cancellationToken);
+                resources.Add(new { path = relative, content });
+                sourceHashes[relative] = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(content)));
+            }
             else
                 resources.Add(new { path = relative, base64 = Convert.ToBase64String(await File.ReadAllBytesAsync(file, cancellationToken)) });
         }
@@ -79,11 +84,24 @@ internal sealed class CompilationClient : IDisposable
         }
         var pdfPath = Path.Combine(cache, "output.pdf");
         await File.WriteAllBytesAsync(pdfPath, await http.GetByteArrayAsync(result.PdfUrl, cancellationToken), cancellationToken);
-        return new(pdfPath, logPath, null);
+        return new(pdfPath, logPath, null, result.BuildId is null ? null : new CompilationSnapshot(projectId, result.BuildId, directory, sourceHashes));
+    }
+
+    public async Task<SourceLocation?> SyncFromPdfAsync(CompilationSnapshot snapshot, int page, double h, double v, CancellationToken cancellationToken)
+    {
+        using var response = await http.PostAsJsonAsync($"/api/projects/{snapshot.ProjectId}/builds/{snapshot.BuildId}/synctex", new { page, h, v }, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+            throw new InvalidOperationException(response.StatusCode == System.Net.HttpStatusCode.NotFound
+                ? "La compilación ya no está disponible en Overleaf. Recompila el proyecto."
+                : "No se pudo consultar SyncTeX. Comprueba el adaptador y Overleaf.");
+        var result = await response.Content.ReadFromJsonAsync<SyncResponse>(cancellationToken);
+        return result?.Code.FirstOrDefault(position => position.Line > 0 && snapshot.SourceHashes.ContainsKey(position.File));
     }
 
     public void Dispose() => http.Dispose();
     private record CompileResponse(string Status, string? BuildId, string? PdfUrl, string? LogUrl, string? Error);
+    private record SyncResponse(SourceLocation[] Code);
 }
 
-internal record CompilationResult(string? PdfPath, string? LogPath, string? Error);
+internal record CompilationResult(string? PdfPath, string? LogPath, string? Error, CompilationSnapshot? Snapshot = null);
+internal record SourceLocation(string File, int Line, int Column);

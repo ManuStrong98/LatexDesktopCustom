@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LatexDesktopCustom"
-        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        xmlns:pdfviewer="clr-namespace:LatexDesktopCustom.PdfViewer"
         mc:Ignorable="d"
         Title="MainWindow" Icon="Assets/app-icon.ico" WindowStartupLocation="Manual"
         Background="#FFFF00FF">
@@ -50,7 +50,7 @@
                                VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                 </StackPanel>
             </Border>
-            <wv2:WebView2CompositionControl x:Name="PdfWebView" Grid.Row="1"
+            <pdfviewer:PdfWebViewControl x:Name="PdfWebView" Grid.Row="1"
                                            HorizontalAlignment="Stretch"
                                            VerticalAlignment="Stretch"
                                            AutomationProperties.Name="Visor PDF" />

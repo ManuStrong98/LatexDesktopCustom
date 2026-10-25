@@ -130,6 +130,13 @@ internal sealed class WindowsPowerShellWindow : IDisposable
             SetWindowPos(attachedWindow, IntPtr.Zero, 0, 0, 0, 0, 0x0013);
     }
 
+    public void Activate()
+    {
+        BringToFront();
+        if (!disposed && attachedWindow != IntPtr.Zero && IsWindow(attachedWindow))
+            SetForegroundWindow(attachedWindow);
+    }
+
     public void UpdateBounds()
     {
         if (disposed || terminal == IntPtr.Zero || owner.WindowState == WindowState.Minimized) return;
@@ -167,6 +174,7 @@ internal sealed class WindowsPowerShellWindow : IDisposable
     [DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW")] private static extern IntPtr SetWindowLongPtr(IntPtr hwnd, int index, IntPtr value);
     [DllImport("user32.dll")] private static extern bool SetWindowPos(IntPtr hwnd, IntPtr after, int x, int y, int width, int height, uint flags);
     [DllImport("user32.dll")] private static extern bool ShowWindow(IntPtr hwnd, int command);
+    [DllImport("user32.dll")] private static extern bool SetForegroundWindow(IntPtr hwnd);
     [DllImport("user32.dll")] private static extern bool IsWindow(IntPtr hwnd);
     [DllImport("user32.dll")] private static extern bool PostMessage(IntPtr hwnd, uint message, IntPtr wParam, IntPtr lParam);
 }

@@ -8,4 +8,6 @@ Al iniciar, el proyecto seleccionado se pasa a Neovim como archivo inicial y Win
 
 Las llamadas posteriores utilizan el cliente de Neovim en modo `--headless --clean --remote-expr`: no abren otra terminal ni cargan otra copia de la configuración del editor. Las rutas se transmiten como JSON y se escapan al ejecutar comandos de Neovim.
 
-La navegación por línea mediante SyncTeX todavía no está implementada.
+`OpenLocationAsync` permite a SyncTeX abrir un archivo incluido y colocar el cursor en una línea/columna, conservando como directorio de trabajo la raíz del proyecto. Centra la línea y despliega los pliegues que la oculten. Protege tanto el buffer actual como un buffer destino que ya esté abierto con cambios sin guardar.
+
+No se modifica `init.lua`, los plugins, los atajos ni el perfil de PowerShell. Después de navegar desde el PDF, se activa la ventana de Windows PowerShell para continuar escribiendo en Neovim.

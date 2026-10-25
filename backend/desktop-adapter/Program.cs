@@ -106,6 +106,31 @@ app.MapGet("/api/projects/{projectId}/builds/{buildId}/files/{name}", async
     catch (HttpRequestException) { return Results.Problem("No se pudo descargar el resultado de Overleaf.", statusCode: 502); }
 });
 
+app.MapPost("/api/projects/{projectId}/builds/{buildId}/synctex", async
+    (string projectId, string buildId, PdfPosition point, HttpContext context) =>
+{
+    if (!ValidId(projectId) || !ValidBuild(buildId) || point.Page is < 1 or > 100000
+        || !double.IsFinite(point.H) || !double.IsFinite(point.V) || point.H is < 0 or > 1000000 || point.V is < 0 or > 1000000)
+        return Results.BadRequest(new { error = "Posición de PDF inválida." });
+    await compileLock.WaitAsync(context.RequestAborted);
+    try
+    {
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted);
+        timeout.CancelAfter(TimeSpan.FromSeconds(15));
+        var result = await SyncTexService.FromPdfAsync(container, projectId, buildId, point, timeout.Token);
+        if (result.Error == "missing-build")
+            return Results.NotFound(new { error = "Esta compilación ya no está en la caché de Overleaf. Vuelve a compilar el proyecto." });
+        return Results.Ok(new { code = result.Code.Where(position => ValidPath(position.File)).ToArray() });
+    }
+    catch (OperationCanceledException) { return Results.Problem("SyncTeX excedió el tiempo de espera.", statusCode: 504); }
+    catch (Exception ex) when (ex is IOException or JsonException or System.ComponentModel.Win32Exception)
+    {
+        app.Logger.LogError(ex, "No se pudo consultar SyncTeX para {ProjectId}/{BuildId}", projectId, buildId);
+        return Results.Problem("No se pudo consultar SyncTeX. Comprueba Overleaf y recompila el documento.", statusCode: 502);
+    }
+    finally { compileLock.Release(); }
+});
+
 app.Run();
 
 static bool ValidId(string value) => Regex.IsMatch(value, "^[0-9a-f]{24}$");

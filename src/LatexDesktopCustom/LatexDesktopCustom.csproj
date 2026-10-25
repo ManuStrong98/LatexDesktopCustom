@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <Resource Include="Assets/app-icon.ico" />
+    <Content Include="PdfViewer\**\*" Exclude="PdfViewer\**\*.cs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

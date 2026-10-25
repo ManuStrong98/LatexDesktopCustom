@@ -29,6 +29,7 @@ Configuración opcional mediante variables de entorno:
 - `POST /api/projects/{id}/compile`: compila recursos de texto y binarios. El ID contiene 24 caracteres hexadecimales.
 - `GET /api/projects/{id}/builds/{buildId}/files/output.pdf`: entrega el PDF.
 - La misma ruta con `output.log` o `output.synctex.gz` entrega esas salidas.
+- `POST /api/projects/{id}/builds/{buildId}/synctex`: recibe `{ "page": 1, "h": 150, "v": 300 }` y devuelve `{ "code": [{ "file": "capitulos/introduccion.tex", "line": 10, "column": 1 }] }`. Página, línea y columna comienzan en 1; las coordenadas están en puntos PDF desde la esquina superior izquierda.
 
 ```json
 {
@@ -66,3 +67,9 @@ dotnet run --project tests/BinaryCompilation.Integration
 Prueba el cliente C# real con texto, PNG, JPEG y un PDF incluido; nombres con espacios y acentos; cambio de imagen con el mismo nombre; y rechazo de Base64 y rutas inválidos. Utiliza `pdfimages` dentro de `sharelatex` para verificar las dimensiones de las imágenes incrustadas, sin instalar herramientas en Windows. Conserva los archivos de prueba en `artifacts/binary-integration` y la caché de PDFs de la app.
 
 Los paquetes de TeX Live necesarios siguen dependiendo del documento. No se instalan automáticamente ni se modifica la plantilla.
+
+## SyncTeX por versión del PDF
+
+El adaptador ejecuta el `synctex` instalado en Overleaf sobre `generated-files/{buildId}/output.pdf` y su `.synctex.gz`. Se usa explícitamente la caché de ese build: en la versión de CLSI revisada, la ruta nativa `/sync/pdf?buildId=...` puede ejecutar la consulta contra la ruta absoluta de la compilación más reciente. Las pruebas verifican que un PDF anterior siga devolviendo sus líneas originales después de otra compilación.
+
+Las rutas de salida se normalizan con relación al directorio de fuentes del proyecto y se rechazan rutas externas. Si el build ha caducado, se devuelve HTTP 404 para que la app solicite recompilar. No se edita el código ni la configuración de Overleaf.

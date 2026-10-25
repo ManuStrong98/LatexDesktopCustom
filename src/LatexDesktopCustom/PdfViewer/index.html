@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Visor PDF</title>
+  <link rel="stylesheet" href="vendor/pdfjs/web/pdf_viewer.css">
+  <link rel="stylesheet" href="viewer.css">
+</head>
+<body>
+  <nav aria-label="Controles del PDF">
+    <button id="previous" aria-label="Página anterior">‹</button>
+    <input id="page" type="number" min="1" value="1" aria-label="Página">
+    <span id="pages">/ 0</span>
+    <button id="next" aria-label="Página siguiente">›</button>
+    <button id="zoomOut" aria-label="Alejar">−</button>
+    <select id="zoom" aria-label="Zoom">
+      <option value="page-width">Ancho de página</option>
+      <option value="page-fit">Página completa</option>
+      <option value="0.75">75 %</option><option value="1">100 %</option>
+      <option value="1.25">125 %</option><option value="1.5">150 %</option>
+      <option value="2">200 %</option>
+    </select>
+    <button id="zoomIn" aria-label="Acercar">+</button>
+  </nav>
+  <div id="viewerContainer" tabindex="0"><div id="viewer" class="pdfViewer"></div></div>
+  <div id="empty"><h1>Visor PDF</h1><p>Abre un PDF o compila tu proyecto LaTeX.</p></div>
+  <footer id="status" role="status">Doble clic en el PDF compilado para ir al código.</footer>
+  <script type="module" src="viewer.mjs"></script>
+</body>
+</html>

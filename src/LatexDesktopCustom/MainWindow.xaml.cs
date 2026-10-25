@@ -27,6 +27,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        PdfWebView.NavigationInputFailed += message => { if (!isClosing) CompilationStatus.Text = message; };
         ContentRendered += (_, _) =>
         {
             EnableTransparentBackground();

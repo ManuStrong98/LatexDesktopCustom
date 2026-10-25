@@ -16,19 +16,29 @@ internal sealed class NeovimSession
         return command;
     }
 
-    public async Task OpenFileAsync(string mainFile, CancellationToken cancellationToken)
+    public Task OpenFileAsync(string mainFile, CancellationToken cancellationToken)
+        => OpenAsync(mainFile, Path.GetDirectoryName(Path.GetFullPath(mainFile))!, 0, 1, cancellationToken);
+
+    public Task OpenLocationAsync(string file, string projectDirectory, int line, int column, CancellationToken cancellationToken)
+        => OpenAsync(file, projectDirectory, Math.Max(1, line), Math.Max(1, column), cancellationToken);
+
+    private async Task OpenAsync(string mainFile, string projectDirectory, int line, int column, CancellationToken cancellationToken)
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(TimeSpan.FromSeconds(12));
         cancellationToken = timeout.Token;
         var fullPath = Path.GetFullPath(mainFile);
         if (!File.Exists(fullPath)) throw new FileNotFoundException("No se encontró el archivo LaTeX.", fullPath);
-        var arguments = JsonSerializer.Serialize(new[] { Path.GetDirectoryName(fullPath)!, fullPath });
+        var arguments = JsonSerializer.Serialize(new object[] { Path.GetFullPath(projectDirectory), fullPath, line, column });
         // JSON carries paths as data; fnameescape handles spaces and Ex metacharacters.
         const string lua = "(function() local p = vim.fn.json_decode(_A); " +
-            "if vim.bo.modified then return \"unsaved\" end; " +
+            "local b = vim.fn.bufnr(p[2]); if vim.bo.modified or (b > 0 and vim.bo[b].modified) then return \"unsaved\" end; " +
             "vim.cmd(\"cd \" .. vim.fn.fnameescape(p[1])); " +
-            "vim.cmd(\"edit \" .. vim.fn.fnameescape(p[2])); return \"opened\" end)()";
+            "vim.cmd(\"edit \" .. vim.fn.fnameescape(p[2])); " +
+            "if p[3] > 0 then local row = math.min(p[3], vim.api.nvim_buf_line_count(0)); " +
+            "local text = vim.api.nvim_buf_get_lines(0,row-1,row,false)[1] or \"\"; " +
+            "vim.api.nvim_win_set_cursor(0,{row,math.min(p[4]-1,#text)}); vim.cmd(\"normal! zvzz\"); end; " +
+            "return \"opened\" end)()";
         var expression = "luaeval('" + lua.Replace("'", "''") + "', '" + arguments.Replace("'", "''") + "')";
         var deadline = DateTime.UtcNow.AddSeconds(12);
         while (true)

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><TargetFramework>net10.0-windows10.0.17763.0</TargetFramework>
+    <UseWPF>true</UseWPF><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4314.35" />
+    <Compile Include="../../src/LatexDesktopCustom/Compilation/CompilationClient.cs" Link="CompilationClient.cs" />
+    <Compile Include="../../src/LatexDesktopCustom/Compilation/CompilationSnapshot.cs" Link="CompilationSnapshot.cs" />
+    <Compile Include="../../src/LatexDesktopCustom/Editor/NeovimSession.cs" Link="NeovimSession.cs" />
+    <Compile Include="../../src/LatexDesktopCustom/PdfViewer/PdfWebViewControl.cs" Link="PdfWebViewControl.cs" />
+    <Content Include="../../src/LatexDesktopCustom/PdfViewer/**/*" Exclude="../../src/LatexDesktopCustom/PdfViewer/**/*.cs" Link="PdfViewer/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

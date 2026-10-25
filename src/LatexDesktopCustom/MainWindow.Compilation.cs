@@ -98,7 +98,7 @@ public partial class MainWindow
             OpenCompileLogButton.Visibility = compileLogPath is null ? Visibility.Collapsed : Visibility.Visible;
             if (result.PdfPath is not null)
             {
-                OpenPdfFile(result.PdfPath);
+                OpenPdfFile(result.PdfPath, result.Snapshot);
                 CompilationStatus.Text = "Compilación completada. PDF actualizado.";
             }
             else
