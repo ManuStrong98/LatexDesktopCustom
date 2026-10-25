@@ -31,7 +31,14 @@ internal sealed class SplitterInputSurface : Window
         ShowInTaskbar = false;
         ShowActivated = false;
         Background = Brushes.Transparent;
-        thumb = new Thumb { Background = new SolidColorBrush(Color.FromRgb(176, 176, 176)), Cursor = Cursors.SizeWE };
+        var dividerBorder = new FrameworkElementFactory(typeof(Border));
+        dividerBorder.SetValue(Border.BackgroundProperty, Brushes.Black);
+        thumb = new Thumb
+        {
+            Background = Brushes.Black,
+            Cursor = Cursors.SizeWE,
+            Template = new ControlTemplate(typeof(Thumb)) { VisualTree = dividerBorder }
+        };
         Content = thumb;
         thumb.DragStarted += (_, _) =>
         {

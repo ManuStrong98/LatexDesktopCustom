@@ -7,7 +7,12 @@
         xmlns:pdfviewer="clr-namespace:LatexDesktopCustom.PdfViewer"
         mc:Ignorable="d"
         Title="MainWindow" Icon="Assets/app-icon.ico" WindowStartupLocation="Manual"
+        WindowStyle="None"
+        ResizeMode="CanResize"
         Background="#FFFF00FF">
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0" ResizeBorderThickness="0" GlassFrameThickness="0" CornerRadius="0" NonClientFrameEdges="None" />
+    </WindowChrome.WindowChrome>
     <Window.Resources>
         <Style x:Key="ToolbarButton" TargetType="Button">
             <Setter Property="Width" Value="30" />
@@ -39,7 +44,13 @@
             <Setter Property="Foreground" Value="#E4E7F5" />
         </Style>
     </Window.Resources>
-    <Grid x:Name="LayoutRoot">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="14" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid x:Name="WindowDragArea" Grid.Row="0" Background="Transparent" MouseLeftButtonDown="WindowDragArea_MouseLeftButtonDown" />
+    <Grid x:Name="LayoutRoot" Grid.Row="1">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" MinWidth="150" />
             <ColumnDefinition Width="5" />
@@ -50,7 +61,7 @@
                       Width="5"
                       HorizontalAlignment="Stretch"
                       VerticalAlignment="Stretch"
-                      Background="#303052"
+                      Background="Black"
                       Cursor="SizeWE"
                       ResizeDirection="Columns"
                       ResizeBehavior="PreviousAndNext"
@@ -105,5 +116,6 @@
                 </StackPanel>
             </Border>
         </Grid>
+    </Grid>
     </Grid>
 </Window>

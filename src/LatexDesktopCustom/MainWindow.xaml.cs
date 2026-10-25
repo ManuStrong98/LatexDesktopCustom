@@ -22,6 +22,8 @@ public partial class MainWindow : Window
     private TransparentInputSurface? terminalInputSurface;
     private bool isClosing;
     private SplitterInputSurface? splitterInputSurface;
+    private TransparentInputSurface? dragInputSurface;
+    private readonly List<ResizeInputSurface> resizeInputSurfaces = [];
     private LatexDesktopCustom.Editor.NeovimSession? neovimSession;
 
     public MainWindow()
@@ -42,6 +44,10 @@ public partial class MainWindow : Window
         ContentRendered += (_, _) =>
         {
             EnableTransparentBackground();
+            dragInputSurface = new TransparentInputSurface(this, WindowDragArea);
+            dragInputSurface.MouseLeftButtonDown += WindowDragArea_MouseLeftButtonDown;
+            dragInputSurface.UpdateBounds();
+            dragInputSurface.Show();
             if (terminalInputSurface is not null) return;
             terminalInputSurface = new TransparentInputSurface(this, TerminalPanel);
 
@@ -53,9 +59,13 @@ public partial class MainWindow : Window
             splitterInputSurface.Show();
             ConfigureCompilationProject();
             StartPowerShell();
+            for (var direction = 1; direction <= 8; direction++)
+                resizeInputSurfaces.Add(new ResizeInputSurface(this, direction));
+            UpdateInputSurfaces();
             _ = InitializePdfViewerAsync();
         };
-        Activated += (_, _) => { powerShellWindow?.BringToFront(); splitterInputSurface?.BringToFront(); };
+        Activated += (_, _) => { powerShellWindow?.BringToFront(); splitterInputSurface?.BringToFront(); foreach (var surface in resizeInputSurfaces) surface.BringToFront(); };
+        StateChanged += (_, _) => UpdateInputSurfaces();
         LocationChanged += (_, _) => UpdateInputSurfaces();
         LayoutUpdated += (_, _) => UpdateInputSurfaces();
         Closed += (_, _) =>
@@ -99,10 +109,19 @@ public partial class MainWindow : Window
 
     private void UpdateInputSurfaces()
     {
+        dragInputSurface?.UpdateBounds();
         terminalInputSurface?.UpdateBounds();
 
         powerShellWindow?.UpdateBounds();
         splitterInputSurface?.UpdateBounds();
+        foreach (var surface in resizeInputSurfaces) surface.UpdateBounds();
+    }
+
+    private void WindowDragArea_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ButtonState != MouseButtonState.Pressed) return;
+        DragMove();
+        e.Handled = true;
     }
 
     private void EnableTransparentBackground()
