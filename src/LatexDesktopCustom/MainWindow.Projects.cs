@@ -55,6 +55,8 @@ public partial class MainWindow
 
     private void ClearProjectPdf()
     {
+        compiledPdfPath = null;
+        DownloadPdfButton.IsEnabled = false;
         displayedDocumentId = null;
         displayedCompilation = null;
         compileLogPath = null;

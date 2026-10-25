@@ -44,6 +44,7 @@
                             IsEnabled="False" Click="OpenPdf_Click" />
                     <Button x:Name="SelectMainFileButton" Content="Seleccionar .tex" Padding="12,6" Margin="6,0,0,0" Click="SelectMainFile_Click" />
                     <Button x:Name="CompileButton" Content="Compilar" Padding="12,6" Margin="6,0,0,0" IsEnabled="False" Click="Compile_Click" />
+                    <Button x:Name="DownloadPdfButton" Content="Descargar PDF" Padding="12,6" Margin="6,0,0,0" IsEnabled="False" Click="DownloadPdf_Click" />
                     <Button x:Name="OpenCompileLogButton" Content="Ver log" Padding="12,6" Margin="6,0,0,0" Visibility="Collapsed" Click="OpenCompileLog_Click" />
                   </WrapPanel>
                     <TextBlock x:Name="MainFileLabel" Text="Selecciona el archivo principal .tex" Margin="0,6,0,0" TextTrimming="CharacterEllipsis" />

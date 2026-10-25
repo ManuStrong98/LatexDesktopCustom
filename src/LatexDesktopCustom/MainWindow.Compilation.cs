@@ -13,6 +13,23 @@ public partial class MainWindow
     private string? selectedMainFile;
     private string? compileLogPath;
     private bool compiling;
+    private string? compiledPdfPath;
+
+    private void DownloadPdf_Click(object sender, RoutedEventArgs e)
+    {
+        if (compiledPdfPath is null || selectedMainFile is null) return;
+        try
+        {
+            var directory = Path.GetDirectoryName(selectedMainFile)!;
+            var destination = Path.Combine(directory, new DirectoryInfo(directory).Name + ".pdf");
+            File.Copy(compiledPdfPath, destination, overwrite: true);
+            CompilationStatus.Text = $"PDF guardado: {destination}";
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            CompilationStatus.Text = "No se pudo guardar el PDF: " + ex.Message;
+        }
+    }
 
     private void ConfigureCompilationProject()
     {
@@ -111,6 +128,8 @@ public partial class MainWindow
             if (result.PdfPath is not null)
             {
                 OpenPdfFile(result.PdfPath, result.Snapshot);
+                compiledPdfPath = result.PdfPath;
+                DownloadPdfButton.IsEnabled = true;
                 CompilationStatus.Text = "Compilación completada. PDF actualizado.";
             }
             else

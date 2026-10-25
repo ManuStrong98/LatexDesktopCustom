@@ -21,6 +21,7 @@ internal sealed class CompilationClient : IDisposable
     {
         var fullPath = Path.GetFullPath(mainFile);
         var directory = Path.GetDirectoryName(fullPath)!;
+        var exportedPdf = new DirectoryInfo(directory).Name + ".pdf";
         var resources = new List<object>();
         var sourceHashes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         long sourceBytes = 0;
@@ -29,6 +30,8 @@ internal sealed class CompilationClient : IDisposable
         foreach (var file in Directory.EnumerateFiles(directory, "*", enumeration))
         {
             var relative = Path.GetRelativePath(directory, file).Replace('\\', '/');
+            if (string.Equals(relative, exportedPdf, StringComparison.OrdinalIgnoreCase)) continue;
+            if (relative.Split('/').Any(part => part.Equals(".git", StringComparison.OrdinalIgnoreCase) || part.Equals(".gitignore", StringComparison.OrdinalIgnoreCase))) continue;
             if (relative.Split('/').Any(part => part is ".git" or "bin" or "obj" or "node_modules" or "artifacts")) continue;
             var text = TextExtensions.Contains(Path.GetExtension(file));
             if (!text && !BinaryExtensions.Contains(Path.GetExtension(file))) continue;
