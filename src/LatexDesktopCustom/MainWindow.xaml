@@ -34,14 +34,21 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Border Background="#F3F4F6" Padding="8">
-                <DockPanel>
+                <StackPanel>
+                  <WrapPanel>
                     <Button x:Name="OpenPdfButton" Content="Abrir PDF" Padding="12,6"
-                            IsEnabled="False" Click="OpenPdf_Click" DockPanel.Dock="Left" />
-                    <TextBlock x:Name="PdfFileName" Text="Ningún PDF abierto" Margin="12,0,0,0"
+                            IsEnabled="False" Click="OpenPdf_Click" />
+                    <Button x:Name="SelectMainFileButton" Content="Seleccionar .tex" Padding="12,6" Margin="6,0,0,0" Click="SelectMainFile_Click" />
+                    <Button x:Name="CompileButton" Content="Compilar" Padding="12,6" Margin="6,0,0,0" IsEnabled="False" Click="Compile_Click" />
+                    <Button x:Name="OpenCompileLogButton" Content="Ver log" Padding="12,6" Margin="6,0,0,0" Visibility="Collapsed" Click="OpenCompileLog_Click" />
+                  </WrapPanel>
+                    <TextBlock x:Name="MainFileLabel" Text="Selecciona el archivo principal .tex" Margin="0,6,0,0" TextTrimming="CharacterEllipsis" />
+                    <TextBlock x:Name="PdfFileName" Text="Ningún PDF abierto" Margin="0,4,0,0"
                                VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                </DockPanel>
+                </StackPanel>
             </Border>
             <wv2:WebView2CompositionControl x:Name="PdfWebView" Grid.Row="1"
                                            HorizontalAlignment="Stretch"
@@ -56,6 +63,7 @@
                             Margin="0,12,0,0" Padding="12,6" Click="RetryPdfViewer_Click" />
                 </StackPanel>
             </Border>
+            <TextBlock x:Name="CompilationStatus" Grid.Row="2" Margin="10,6" TextWrapping="Wrap" Foreground="#374151" />
         </Grid>
     </Grid>
 </Window>

@@ -47,6 +47,8 @@ public partial class MainWindow : Window
         Closed += (_, _) =>
         {
             isClosing = true;
+            compilationCancellation.Cancel();
+            compilationClient.Dispose();
             powerShellWindow?.Dispose();
             PdfWebView.Dispose();
         };

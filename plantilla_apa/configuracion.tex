@@ -1,0 +1,196 @@
+% ============================================================
+% CONFIGURACIÓN GENERAL - APA 7 + adaptación institucional
+% Motor: pdfLaTeX
+% ============================================================
+
+% ------------------------------------------------------------
+% IDIOMA, CODIFICACIÓN Y FUENTE
+% ------------------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+
+% Fuente de estilo Times compatible con pdfLaTeX.
+% APA 7 admite Times New Roman 12 pt. Con pdfLaTeX, newtxtext/newtxmath
+% es una alternativa Times muy cercana y portable.
+\usepackage{newtxtext,newtxmath}
+
+% ------------------------------------------------------------
+% PÁGINA APA 7
+% ------------------------------------------------------------
+\usepackage[
+  letterpaper,
+  top=2.54cm,
+  bottom=2.54cm,
+  left=2.54cm,
+  right=2.54cm,
+  headheight=15pt,
+  headsep=0.50cm
+]{geometry}
+
+\usepackage{setspace}
+\doublespacing
+
+\usepackage{ragged2e}
+\AtBeginDocument{%
+  \RaggedRight
+  \setlength{\parindent}{1.27cm}% 1/2 pulgada
+}
+\setlength{\parskip}{0pt}
+\hyphenpenalty=10000
+\exhyphenpenalty=10000
+
+% Si tu facultad exige texto justificado, comenta \RaggedRight arriba
+% y usa \justifying.
+
+% ------------------------------------------------------------
+% NÚMERO DE PÁGINA ARRIBA A LA DERECHA
+% ------------------------------------------------------------
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[R]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\fancypagestyle{plain}{%
+  \fancyhf{}
+  \fancyhead[R]{\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+}
+
+% ------------------------------------------------------------
+% TÍTULOS INSTITUCIONALES: CAPÍTULO 2, 2.1, 2.5.1, etc.
+% ------------------------------------------------------------
+% Nota: APA 7 puro no numera encabezados, pero el documento institucional
+% de ejemplo sí los numera. Esta plantilla sigue ese ejemplo.
+\usepackage{titlesec}
+
+\titleformat{\chapter}[hang]
+  {\normalfont\bfseries}
+  {CAPÍTULO \thechapter.}
+  {0.5em}
+  {\MakeUppercase}
+\titlespacing*{\chapter}{0pt}{0pt}{\baselineskip}
+
+\titleformat{\section}[hang]
+  {\normalfont\bfseries}
+  {\thesection.}
+  {0.5em}
+  {\MakeUppercase}
+\titlespacing*{\section}{0pt}{\baselineskip}{0pt}
+
+\titleformat{\subsection}[hang]
+  {\normalfont\bfseries}
+  {\thesubsection.}
+  {0.5em}
+  {}
+\titlespacing*{\subsection}{0pt}{\baselineskip}{0pt}
+
+\titleformat{\subsubsection}[hang]
+  {\normalfont\bfseries\itshape}
+  {\thesubsubsection.}
+  {0.5em}
+  {}
+\titlespacing*{\subsubsection}{0pt}{\baselineskip}{0pt}
+
+\usepackage{indentfirst}
+
+% ------------------------------------------------------------
+% TABLAS Y FIGURAS APA
+% ------------------------------------------------------------
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{chngcntr}
+\counterwithout{figure}{chapter}
+\counterwithout{table}{chapter}
+
+\addto\captionsspanish{%
+  \renewcommand{\figurename}{Figura}%
+  \renewcommand{\tablename}{Tabla}%
+}
+
+\captionsetup{
+  justification=raggedright,
+  singlelinecheck=false,
+  labelsep=newline,
+  labelfont=bf,
+  textfont=it,
+  font=normalsize,
+  skip=6pt
+}
+\captionsetup[table]{position=above}
+\captionsetup[figure]{position=above}
+
+\newcommand{\notaAPA}[1]{%
+  \par{\RaggedRight\noindent\textit{Nota.} #1\par}%
+}
+
+% ------------------------------------------------------------
+% CITAS EN BLOQUE (40 PALABRAS O MÁS)
+% ------------------------------------------------------------
+\newenvironment{citaAPA}
+{%
+  \begin{list}{}{% 
+    \setlength{\leftmargin}{1.27cm}%
+    \setlength{\rightmargin}{0pt}%
+    \setlength{\topsep}{0pt}%
+    \setlength{\partopsep}{0pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\itemsep}{0pt}%
+  }
+  \item[]\setlength{\parindent}{0pt}%
+}
+{\end{list}}
+
+% ------------------------------------------------------------
+% ENLACES Y URL
+% ------------------------------------------------------------
+\usepackage{xurl}
+\usepackage[hidelinks]{hyperref}
+
+% ------------------------------------------------------------
+% REFERENCIAS APA 7
+% ------------------------------------------------------------
+\usepackage{csquotes}
+\usepackage[
+  backend=biber,
+  style=apa,
+  sorting=nyt,
+  sortcites=true,
+  uniquelist=false
+]{biblatex}
+\DeclareLanguageMapping{spanish}{spanish-apa}
+\addbibresource{referencias.bib}
+
+\setlength{\bibhang}{1.27cm}
+\setlength{\bibitemsep}{0pt}
+
+\defbibheading{apaheading}[REFERENCIAS]{%
+  \clearpage
+  \phantomsection
+  \addcontentsline{toc}{chapter}{#1}%
+  \begin{center}
+    \textbf{#1}
+  \end{center}
+  \vspace{\baselineskip}
+}
+
+% ------------------------------------------------------------
+% PORTADA APA PARA ESTUDIANTE
+% ------------------------------------------------------------
+\newcommand{\portadaAPA}[6]{%
+  \thispagestyle{fancy}
+  \vspace*{0.18\textheight}
+  \begin{center}
+    \textbf{#1}\par
+    \vspace{2\baselineskip}
+    #2\par
+    #3\par
+    #4\par
+    #5\par
+    #6\par
+  \end{center}
+  \vfill
+  \clearpage
+}

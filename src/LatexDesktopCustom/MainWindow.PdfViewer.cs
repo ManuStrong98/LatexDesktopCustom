@@ -46,6 +46,8 @@ public partial class MainWindow
                 """);
             PdfViewerStatusPanel.Visibility = Visibility.Collapsed;
             OpenPdfButton.IsEnabled = true;
+            CompileButton.IsEnabled = true;
+            ConfigureCompilationProject();
 
             var arguments = Environment.GetCommandLineArgs();
             var pdfArgument = Array.IndexOf(arguments, "--pdf");
@@ -54,6 +56,14 @@ public partial class MainWindow
                 if (pdfArgument + 1 >= arguments.Length)
                     throw new ArgumentException("Falta la ruta del PDF después de --pdf.");
                 OpenPdfFile(arguments[pdfArgument + 1]);
+            }
+            var compileArgument = Array.IndexOf(arguments, "--compile");
+            if (compileArgument >= 0)
+            {
+                if (compileArgument + 1 >= arguments.Length)
+                    throw new ArgumentException("Falta el archivo principal después de --compile.");
+                SelectMainFile(arguments[compileArgument + 1]);
+                await CompileSelectedProjectAsync();
             }
         }
         catch (Exception ex) when (!isClosing)

@@ -1,1 +1,4 @@
-<Solution><Project Path="src/LatexDesktopCustom/LatexDesktopCustom.csproj" /></Solution>
+<Solution>
+  <Project Path="src/LatexDesktopCustom/LatexDesktopCustom.csproj" />
+  <Project Path="backend/desktop-adapter/DesktopAdapter.csproj" />
+</Solution>
