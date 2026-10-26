@@ -8,3 +8,9 @@
 !.env.example
 **/node_modules/
 artifacts/
+
+# Salidas de compilación y publicación de .NET
+obj/
+artifacts/
+publish/
+
